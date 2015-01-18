@@ -29,6 +29,7 @@ def search_string(query):
 def search_episode(episode):
     return search({
         "tvdb": {
+            "id": episode["tvdb_id"],
             "season": episode["season"],
             "episode": episode["episode"],
         }
@@ -81,4 +82,4 @@ def search(params):
 
 
 # This registers your module for use
-provider.register(search_string, search_movie, None)
+provider.register(search_string, search_movie, search_episode)
