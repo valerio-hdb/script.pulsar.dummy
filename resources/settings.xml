@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+
+<settings>
+
+  <!-- General -->
+  
+	<category label="30247">
+    
+		<setting id="username" type="text" label="Username" default="" />
+    
+		<setting id="passkey" type="text" label="Passkey" default="" />
+  
+	</category>
+  
+
+</settings>
