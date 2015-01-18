@@ -5,22 +5,16 @@
 # You can read it at:
 # https://github.com/steeve/plugin.video.pulsar/blob/master/resources/site-packages/pulsar/provider.py
 from pulsar import provider
+import xbmcaddon
 
+__settings__ = xbmcaddon.Addon(id='script.pulsar.hdbits')
+username = __settings__.getSetting('username')
+passkey = __settings__.getSetting('passkey')
 
 # Raw search
 # query is always a string
-def search(query):
-    # Will issue a GET call to http://foo.bar/search?q=query (properly urlencoded)
-    resp = provider.GET("http://foo.bar/search", params={
-        "q": query,
-    })
-    return provider.extract_magnets(resp.data)
-# To parse JSON you can do:
-#     items = resp.json()
-# To parse XML you can do:
-#     dom = resp.xml()
-# If you have RSS, you can let Pulsar parse it for you with:
-#     return provider.parse_rss(resp.xml())
+def search_string(query):
+    return search({"search": query});
 
 
 # Episode Payload Sample
@@ -33,7 +27,12 @@ def search(query):
 #     "titles": null
 # }
 def search_episode(episode):
-    return search("%(title)s S%(season)02dE%(episode)02d" % episode)
+    return search({
+        "tvdb": {
+            "season": episode["season"],
+            "episode": episode["episode"],
+        }
+    });
 
 
 # Movie Payload Sample
@@ -46,13 +45,40 @@ def search_episode(episode):
 #     "titles": {
 #         "es": "el gran conejo",
 #         "nl": "peach open movie project",
-#         "ru": "большои кролик",
 #         "us": "big buck bunny short 2008"
 #     }
 # }
 def search_movie(movie):
-    return search("%(title)s %(year)d" % movie)
+    return search({
+        "imdb": {
+            "id": movie["imdb_id"][2:]
+        },
+        "medium": [3]
+    });
+
+# Make a search through the HDBits API. Format resposne for pulsar
+def search(params):
+    import json
+    import xbmcgui
+
+    params.update({
+        "username": username,
+        "passkey": passkey
+    });
+
+    resp = provider.POST("https://hdbits.org/api/torrents", data=json.dumps(params), headers={"Content-Type": "application/json"}).json()
+    if (resp["status"] != 0):
+        xbmcgui.Dialog().ok("Something went wrong", json.dumps(resp), json.dumps(params), "")
+        return [];
+
+    torrents = resp["data"]
+
+    for torrent in torrents:
+        torrent["info_hash"] = torrent["hash"]
+        torrent["uri"] = "https://hdbits.org/download.php?passkey=" + passkey + "&id=" + str(torrent["id"])
+
+    return torrents;
 
 
 # This registers your module for use
-provider.register(search, search_movie, search_episode)
+provider.register(search_string, search_movie, None)
