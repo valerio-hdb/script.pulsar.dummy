@@ -4,11 +4,13 @@
 
   <!-- General -->
   
-	<category label="API Authentication">
+	<category label="General">
     
 		<setting id="username" type="text" label="Username" default="" />
     
 		<setting id="passkey" type="text" label="Passkey" default="" />
+
+		<setting id="searchfilter" type="text" label="Search Filter" default="" />
   
 	</category>
   
