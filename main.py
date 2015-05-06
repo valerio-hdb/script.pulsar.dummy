@@ -10,6 +10,7 @@ import xbmcaddon
 __settings__ = xbmcaddon.Addon(id='script.pulsar.hdbits')
 username = __settings__.getSetting('username')
 passkey = __settings__.getSetting('passkey')
+searchfilter = __settings__.getSetting('searchfilter')
 
 # Raw search
 # query is always a string
@@ -57,14 +58,15 @@ def search_movie(movie):
         "medium": [3]
     });
 
-# Make a search through the HDBits API. Format resposne for pulsar
+# Make a search through the HDBits API. Format response for pulsar
 def search(params):
     import json
     import xbmcgui
 
     params.update({
         "username": username,
-        "passkey": passkey
+        "passkey": passkey,
+        "search": searchfilter
     });
 
     resp = provider.POST("https://hdbits.org/api/torrents", data=json.dumps(params), headers={"Content-Type": "application/json"}).json()
@@ -77,7 +79,9 @@ def search(params):
     for torrent in torrents:
         torrent["info_hash"] = torrent["hash"]
         torrent["uri"] = "https://hdbits.org/download.php?passkey=" + passkey + "&id=" + str(torrent["id"])
-
+        torrent["seeds"] = int(torrent["seeders"])
+        torrent["peers"] = int(torrent["leechers"])
+        
     return torrents;
 
 
